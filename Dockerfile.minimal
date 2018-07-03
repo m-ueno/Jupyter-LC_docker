@@ -1,0 +1,54 @@
+FROM jupyter/base-notebook:5811dcb711ba
+
+LABEL maintainer="UENO, Masaru"
+
+USER root
+
+RUN conda install --yes git
+
+USER $NB_USER
+
+RUN pip --no-cache-dir install \
+    jupyter_contrib_nbextensions \
+    git+https://github.com/NII-cloud-operation/Jupyter-i18n_cells.git \
+    git+https://github.com/NII-cloud-operation/Jupyter-LC_nblineage \
+    git+https://github.com/NII-cloud-operation/Jupyter-LC_run_through \
+    git+https://github.com/NII-cloud-operation/Jupyter-LC_wrapper \
+    git+https://github.com/NII-cloud-operation/Jupyter-multi_outputs \
+    git+https://github.com/NII-cloud-operation/Jupyter-LC_index.git \
+    git+https://github.com/NII-cloud-operation/Jupyter-LC_notebook_diff.git
+
+RUN mkdir -p $HOME/.local/share && \
+    jupyter contrib nbextension install --user && \
+    jupyter nbextension install --py nbextension_i18n_cells --user && \
+    jupyter nbextension enable --py nbextension_i18n_cells --user && \
+    jupyter nblineage quick-setup --user && \
+    jupyter run-through quick-setup --user && \
+    jupyter nbextension install --py lc_multi_outputs --user && \
+    jupyter nbextension enable --py lc_multi_outputs --user && \
+    jupyter nbextension install --py notebook_index --user && \
+    jupyter nbextension enable --py notebook_index --user && \
+    jupyter nbextension install --py lc_notebook_diff --user
+
+RUN python -m lc_wrapper.ipython.install
+
+# todo
+# - freeze theme
+# - conda install
+
+USER root
+# RUN conda install --quiet --yes \
+#     'ipywidgets=7.2*' \
+#     'pandas=0.23*' \
+#     'matplotlib=2.2*' \
+#     'seaborn=0.8*' \
+#     'cython=0.28*' \
+#     'bokeh=0.12*' \
+#     'sqlalchemy=1.2*' \
+#     'xlrd'  && \
+#     conda remove --quiet --yes --force qt pyqt && \
+#     conda clean -tipsy && \
+#     # Activate ipywidgets extension in the environment that runs the notebook server
+#     jupyter nbextension enable --py widgetsnbextension --sys-prefix
+
+USER $NB_UID
